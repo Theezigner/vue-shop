@@ -6,13 +6,33 @@ A small practice app built with **Vue 3**, **TypeScript**, **Vite**, and **Tailw
 
 ## ✨ Features
 
-- Product display with **variant color** selector  
-- **Add to Cart** / **Remove from Cart**  
-- Disabled “Add to Cart” state when out of stock (styled)  
-- Hidden “Remove” button when cart is empty
+### Catalog & Cart
+- Product display with **variant color** selection  
+- **Add to Cart** / **Remove from Cart** actions  
+- Disabled **Add to Cart** when out of stock (styled)  
 - Image updates when selecting a variant  
-- Built with Vue 3 **Composition API** (`<script setup>`) + TypeScript  
+- Hidden “Remove” button when cart is empty
+
+### App Shell & Navigation (new)
+- **Responsive Header**: logo (left), desktop nav (center/right), **Cart** icon with badge (right)
+- **Mobile hamburger menu**: slide-in panel with overlay, closes on link click / overlay click / close button
+- **Active link highlighting** using Vue Router’s active classes
+- **Routing** with clean URLs (history mode), including:
+  - `/` Home  
+  - `/shop` Shop  
+  - `/product/:slug` Product Details  
+  - `/cart` Cart  
+  - `/checkout` Checkout  
+  - Catch-all **404** page  
+- **Scroll to top** on route change (smooth UX)
+
+### Developer Experience (new)
+- `@` **alias** for clean imports from `src`
+- Clear **project structure** (components, pages, stores, router, etc.)
 - Tailwind CSS for fast, consistent styling
+- Composition API (`<script setup>`) + TypeScript
+
+> Coming soon: **Pinia** global cart state, **localStorage** cart persistence, **subtotals/totals**, accessibility polish, and tests.
 
 ---
 
@@ -22,6 +42,7 @@ A small practice app built with **Vue 3**, **TypeScript**, **Vite**, and **Tailw
 - **Language:** TypeScript  
 - **Styling:** Tailwind CSS (via `@tailwindcss/vite`)  
 - **State:** Local component state (can be upgraded to Pinia later)
+- **Routing:** Vue Router (history mode) 
 
 ---
 
@@ -43,21 +64,200 @@ pnpm run dev
 
 ---
 
-## 🗂️ Project Structure (simplified)
+## ⚙️ Required Config (new)
+
+### 1) `@` alias to `src`
+So imports like `@/pages/Home.vue` work everywhere.
+
+**vite.config.ts** (ESM-safe)
+```ts
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { fileURLToPath, URL } from "node:url";
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) }
+  }
+});
+```
+
+**tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "types": ["node"]
+  }
+}
+```
+
+> After changing config, **stop and restart** the dev server.
+
+### 2) Tailwind (minimal)
+`src/style.css`
+```css
+@import "tailwindcss";
+```
+
+---
+
+## 🗺️ Routes (new)
+
+- `/` — Home  
+- `/shop` — Product catalog  
+- `/product/:slug` — Product details (dynamic)  
+- `/cart` — Cart  
+- `/checkout` — Checkout  
+- `/:pathMatch(.*)*` — Not Found (404)
+
+Extras:
+- **Active link classes**: `router-link-active`, `router-link-exact-active`  
+- **Scroll behavior**: page scrolls to top on every navigation
+
+---
+
+## 🧭 Header & Navigation (new)
+
+### Desktop
+- **Logo** (left) → routes to `/`  
+- **Nav links** (Shop, About, Contact…) with **active** styling  
+- **Cart icon** with count badge → routes to `/cart`
+
+### Mobile
+- **Hamburger button** toggles a **slide-in menu** (overlay + panel)  
+- Menu **closes** on: link click, overlay click, or the **X** button  
+- Big, thumb-friendly tap targets  
+- (Planned) Escape key closes and focus management for full a11y polish
+
+**Menu layout (three simple zones):**
+1. **Top Bar:** Store name/logo + Close (X)  
+2. **Main Nav:** Vertical links (same list as desktop)  
+3. **Footer Actions:** Optional Login/Help/Language or social links
+
+---
+
+## 🗂️ Project Structure
 
 ```
 .
 ├─ src/
-│  ├─ assets/                  # images, icons
-│  ├─ components/              # reusable UI pieces
-<!-- │  ├─ pages/                   # app pages (optional) -->
-│  ├─ App.vue
-│  ├─ main.ts
-│  └─ style.css                # Tailwind entry (@tailwind base; components; utilities)
+│  ├─ assets/
+│  │  └─ images/
+│  ├─ components/
+│  │  ├─ header/
+│  │  │  ├─ Logo.vue
+│  │  │  ├─ NavLinks.vue
+│  │  │  ├─ CartIcon.vue
+│  │  │  ├─ HamburgerButton.vue
+│  │  │  └─ MobileMenu.vue  # or MainMenu.vue (slide-in panel)
+│  │  └─ common/
+│  │     ├─ ProductCard.vue
+│  │     ├─ ProductGrid.vue
+│  │     ├─ QuantityStepper.vue
+│  │     ├─ Price.vue
+│  │     └─ StarRating.vue
+│  ├─ layouts/
+│  │  └─ DefaultLayout.vue
+│  ├─ pages/
+│  │  ├─ Home.vue
+│  │  ├─ Shop.vue
+│  │  ├─ ProductDetail.vue
+│  │  ├─ Cart.vue
+│  │  ├─ Checkout.vue
+│  │  └─ NotFound.vue
+│  ├─ router/
+│  │  └─ index.ts
+│  ├─ stores/                # (planned) Pinia: cart.ts, products.ts, user.ts
+│  ├─ services/
+│  │  └─ api.ts
+│  ├─ types/
+│  │  └─ index.ts
+│  ├─ utils/
+│  │  └─ format.ts
+│  ├─ styles/
+│  │  └─ globals.css
+│  └─ App.vue
 ├─ index.html
-├─ package.json
 ├─ vite.config.ts
+├─ tsconfig.json
 └─ README.md
+```
+
+---
+
+## 🧪 Manual Test Checklist
+
+**Routing**
+- Can navigate to `/`, `/shop`, `/product/test`, `/cart`, `/checkout`
+- Unknown routes show **404**
+- Page scroll resets to top on navigation
+
+**Header (Desktop)**
+- Logo goes to Home
+- Links navigate and **active** state highlights correctly
+- Cart icon routes to `/cart`
+
+**Header (Mobile)**
+- Nav links hidden; hamburger visible
+- Tap hamburger → menu opens
+- Tap overlay or X → closes
+- Tap any menu link → navigates **and** closes
+
+---
+
+## 🐞 Troubleshooting
+
+**“Failed to resolve import '@/pages/...'”**  
+- Files exist under `src/pages` with **exact** names/casing  
+- `vite.config.ts` alias points `@ → src`  
+- `tsconfig.json` has `"paths": { "@/*": ["src/*"] }`  
+- Restart dev server
+
+**“path is not defined” in `vite.config.ts`**  
+- Use ESM import: `import { fileURLToPath, URL } from "node:url"` (see config above)  
+  or `import path from "node:path"`
+
+**Hamburger doesn’t open the menu**  
+- Parent holds a reactive `isMenuOpen` and passes `:isOpen="isMenuOpen"`  
+- Hamburger emits `"toggle"`; parent listens with `@toggle="isMenuOpen = !isMenuOpen"`  
+- Menu emits `"close"`; parent listens with `@close="isMenuOpen = false"`  
+- Ensure you imported and rendered the **same** component you created (`MobileMenu.vue` vs `MainMenu.vue`)
+
+---
+
+## 🧭 Design & A11y Notes
+
+- **Tap targets:** aim for ~44–48px height on touch items  
+- **Focus styles:** visible outlines for keyboard users  
+- **Alt text:** meaningful `alt` on logos/images  
+- **Active link:** color + underline or border for clarity  
+- **Z-index & overlay:** menu above page content; overlay dims the background  
+- **(Planned)** Focus trap inside the mobile menu and ESC to close
+
+---
+
+## 🔜 Roadmap
+
+- [ ] **Pinia** cart store: items, count, totals, actions  
+- [ ] **localStorage** cart persistence  
+- [ ] **Price formatting** + tax/subtotal/total  
+- [ ] **Catalog filters** (search, category, sort by price)  
+- [ ] **Accessibility**: focus trap + ESC for menus/drawers  
+- [ ] **Unit tests** (Vitest) and **E2E** (Cypress/Playwright)  
+- [ ] **Empty states / skeleton loaders**  
+- [ ] Optional: Auth stubs (Login/Register) and Order Success flow
+
+---
+
+## 🧩 Scripts
+
+```bash
+pnpm dev        # start dev server
+pnpm build      # production build to /dist
+pnpm preview    # preview the production build
 ```
 
 ---
@@ -120,36 +320,6 @@ export default {
 ```css
 @import "tailwindcss";
 ```
-
----
-
-## 🔜 Roadmap
-
-- [ ] Pinia store for global cart state  
-- [ ] Multiple products + simple catalog  
-- [ ] Subtotals / totals, price formatting  
-- [ ] Persist cart to `localStorage`  
-- [ ] Basic routing (Home, Cart) with Vue Router  
-- [ ] Accessibility polish (focus states, ARIA)  
-- [ ] Unit tests (Vitest)
-
----
-
-## 🧩 Scripts
-
-```bash
-pnpm dev       # start dev server
-pnpm build     # production build to /dist
-pnpm preview   # preview the production build locally
-```
-
----
-
-## 🐞 Troubleshooting
-
-- **Images not loading?** Check your paths (e.g., `/src/assets/...`) and that files exist.  
-- **Tailwind classes not applying?** Ensure `@tailwind` directives are in `src/style.css` and the file is imported in `main.ts`.  
-- **Type errors?** Confirm `lang="ts"` on `<script setup>` blocks and your `tsconfig.json` is present.
 
 ---
 

@@ -1,16 +1,21 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import HelloWorld from './components/HelloWorld.vue'
-// defineProps<{ myDogg: string }>()
-let myDogg = "Material gurl"
+import DefaultLayout from './layouts/DefaultLayout.vue';
+const premium = ref(true) 
 </script>
 
 <template>
-  <div class="nav-bar"></div>
+  <div class="flex flex-col gap-10 text-sm px-5  divide-y divide-gray-300">
+    <DefaultLayout />
 
-  <div class='text-sm p-5 pt-10'>
-    <HelloWorld product="Product goes here" /><!--this product dont work, cos it has a value in HelloWorld.vue -->
+    <!-- <router-view /> -->
+    <div class='flex flex-col gap-10 text-sm p-5 pt-10 divide-y divide-gray-300'>
+      <HelloWorld :premium="premium" class="pb-10" product="Product goes here" />
+      <HelloWorld :premium="premium"  class="pb-10" product="Product goes here" />
+      <HelloWorld :premium="premium"  class="pb-10" product="Product goes here" /><!--this product dont work, cos it has a value in HelloWorld.vue -->
 
-    <!-- <h3>{{ myDogg }}</h3> -->
+    </div>
   </div>
 </template>
 
